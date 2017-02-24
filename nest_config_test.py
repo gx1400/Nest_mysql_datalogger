@@ -18,6 +18,8 @@
 #########################################################
 #########################################################
 
+#notes:
+# run time doesn't account for heater state (which I added to code)
 
 #########
 #IMPORTS
@@ -29,7 +31,6 @@ import pickle
 from datetime import * 
 import dateutil.parser
 import threading
-import pygal
 
 #for config parsing
 import os.path
@@ -76,9 +77,6 @@ db_database = ""
 ##########
 def getArgs():
 	parser = argparse.ArgumentParser(prog=programName, description=programDescription)
-	#parser.add_argument("-u","--username",help="Nest Account Username",required=True)
-	#parser.add_argument("-p","--password",help="Nest Account Password",required=True)
-	#parser.add_argument("-f","--accountfile",help="Nest Account Ifno Saved In File",required=False) #To Add In Later
 	parser.add_argument("-c","--configfile",help="Configuration file path",required=True)
 	parser.add_argument("-d","--debug",help="Debug Mode - One Time Run and Debug Info",required=False,action="store_true")
 	parser.add_argument("-x","--deletelogs",help="Delete old log files",required=False,action="store_true",default=False)
@@ -99,6 +97,9 @@ def getArgs():
 	#
 	###############################################
 
+###########
+# GET CONFIG FILE INFO
+##########
 def getConfig():
 	global nest_username
 	global nest_pw
@@ -123,9 +124,7 @@ def getConfig():
 	db_username = c.get('database', 'username').strip('"')
 	db_pw = c.get('database', 'passwd').strip('"')
 	db_database = c.get('database', 'database').strip('"')
-##############
-# END OF ARGS
-##############
+
 
 
 def readUserFromFile(user,filename):
@@ -138,19 +137,19 @@ def nestAuth(user):
 def dataLoop(nest):
 	global debug
 	global second_timestamp
+	global away_temp
+	
 	if(not debug):
 		threading.Timer(120,dataLoop,args=[nest]).start() #120s
 	print ("Running Data Loop...")
 
 	dayLog = []
 	
-	
-
-	
-	
 	log_filename = os.path.join(dir_path,"logs",str(datetime.now().year) +'-' + str(datetime.now().month) + '-' + str(datetime.now().day) + '.log')
 	
 	print("Log file: " + log_filename)
+	
+	#check for log file directory
 	#delete old log files if -x option was added
 	deleteoldlogs(dir_path)	
 	
@@ -161,8 +160,8 @@ def dataLoop(nest):
 		print ("No Current Log File")
 		dayLogIndex = 0 
 
-
 	log = {}
+	
 	data = nest.devices[0]
 	structure = nest.structures[0]
 	deviceData(data,log)
@@ -173,19 +172,21 @@ def dataLoop(nest):
 
 	log['$timestamp'] = datetime.now().isoformat()
 
+	#adjust target temp for heat/cool mode.  I don't use heat+cool
+	if (log['target_type'] == "cool"):
+		away_temp = log['away_temp_high']
+	elif (log['target_type'] == "heat"):
+		away_temp = log['away_temp_low']
+	else:
+		away_temp = 0
+	print("Away temp, " + str(log['target_type']) + ": " + str(away_temp))
+	
 	calcTotals(log,dayLog)
 
 	
 
 	if(dayLogIndex != 0):
-		#if(log['$timestamp'] != dayLog[dayLogIndex-1]['$timestamp']):
 		dayLog.append(log)
-		#else:
-		#	log['$timestamp'] = second_timestamp
-		#	if(log['$timestamp'] != dayLog[dayLogIndex-1]['$timestamp']):
-		#		dayLog.append(log)
-		#	else:
-		#		print ("No chnage in timestamp recieved.. No new data logged.")
 	else:
 		dayLog.append(log)
 
@@ -193,12 +194,7 @@ def dataLoop(nest):
 		pickle.dump(dayLog,open(log_filename,'wb'))
 	except:
 		print ("Error Saving Log: ", log_filename)
-
-	#for x in range(0,len(dayLog)):
-	#	print (dayLog[x])
-
-	#generateGraph(dayLog)
-
+	
 	logToMySQL(log)
 
 	#print dayLog
@@ -272,10 +268,12 @@ def logToMySQL(log):
 	cnx.close
 	
 def deviceData(data,log):
-	global away_temp
+	
 	deviceData = data._device
 	log['leaf_temp'] = utils.c_to_f(deviceData['leaf_threshold_cool'])
-	away_temp = utils.c_to_f(deviceData['away_temperature_high'])
+	#away_temp = utils.c_to_f(deviceData['away_temperature_high'])
+	log['away_temp_high'] = utils.c_to_f(deviceData['away_temperature_high'])
+	log['away_temp_low'] = utils.c_to_f(deviceData['away_temperature_low'])
 	log['$timestamp'] = datetime.fromtimestamp(deviceData['$timestamp']/1000).isoformat()
 	log['humidity'] = deviceData['current_humidity']
 	#print('\n'.join(str(p) for p in deviceData))
@@ -382,54 +380,7 @@ def generateGraph(dayLog):
 		current_temperature.append(log['current_temperature'])
 		outside_temperature.append(log['outside_temperature'])
 
-	##line_chart = pygal.Line(x_label_rotation=20,x_labels_major_every=30,show_minor_x_labels=False,dots_size=.2,width=1200,tooltip_border_radius=2)
-	##line_chart.title = 'Daily Nest Usage'
-	##line_chart.x_labels = timestamps
-	##line_chart.add('Total Run Time', total_run_time)
-	##line_chart.add('Home Run Time', total_run_time_home)
-	##line_chart.add('Away Run Time', total_run_time_away)
-	##line_chart.add('Trans Run Time', total_trans_time)
-	##line_chart.add('Target Temperature', target_temperature)
-	##line_chart.add('Inside Temperature', current_temperature)
-	##line_chart.add('Outside Temperature', outside_temperature)
-
-	##line_chart.render_to_file('daily.svg')  
-
-
-	#output_file("bokeh.html", title="Nest Graph")
-	#dates =  np.array(timestamps,dtype='datetime64')
-	#inside_temp = np.array(current_temperature)
-	#target_temp = np.array(target_temperature)
-	#outside_temp = np.array(outside_temperature)
-	#p = figure(width=800, height=350, x_axis_type="datetime")
-	#p = figure(title="Nest Graph", x_axis_label='Date', y_axis_label='Inside Temp')
-	#p.line(dates, inside_temp, legend="Temp.", line_width=2)
-	#p.circle(dates, inside_temp, legend="y=x", fill_color="white", size=8)
-	#p.line(dates, outside_temp, legend="Outside.", line_width=2,line_color="orange", line_dash="4 4")
-	#p.line(dates, target_temp, legend="Target.", line_width=2,line_color="red", line_dash="2 2")
-	#show(p)
-
-	#TOOLS="resize,pan,wheel_zoom,box_zoom,reset,previewsave"
-	#timestamps = []
-	#for log in dayLog:
-	#	print log['$timestamp']
-
-	#xyvalues = OrderedDict(
-	#	INSIDE=inside_temp,
-	#	OUTSIDE=outside_temp,
-	#	TARGET=target_temp,
-	#	DATE=dates
-	#	)
-	#ts = TimeSeries(
-    #xyvalues, index='DATE', legend=True,
-    #title="Temperature", tools=TOOLS, ylabel='Degrees F',palette=['red','blue','purple'])
-	#ts2 = TimeSeries(
-	#xyvalues, index='DATE', legend=True,
-	#title="Temperature", tools=TOOLS, ylabel='Degrees F',palette=['red','blue','purple'])
-
-	#p = gridchart([ts,ts2])
-
-	#show(p)
+	
 
 def deleteoldlogs(dir_path):
 	
