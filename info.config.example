@@ -1,0 +1,24 @@
+# Configuration file for
+# Nest data logger project
+#
+# Derek Rowland
+# derek.a.rowland@gmail.com
+# 2017
+#
+# [nest] parameters are for Nest Thermostat login
+# [database] parameters are for MySQL login
+#     Assumes default port 3306
+#     Requires table 'nest_log' with appropriate columns
+#
+# Enter values between quotations, they will be
+# stripped in python code
+
+[nest]
+username = "<enter username here>"
+passwd = "<enter password here>"
+
+[database]
+address = "<mysql server address>"
+username = "<mysql user>"
+passwd = "<mysql user pw>"
+database = "<database/schema to connect to>"
