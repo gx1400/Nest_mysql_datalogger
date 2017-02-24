@@ -1,13 +1,13 @@
 #! /usr/bin/python
 #########################################################
-#			Nest MySQL Data Logger                      #
+#           Nest MySQL Data Logger                      #
 #########################################################
 # Derek Rowland - 2017                                  #
 # derek.a.rowland@gmail.com                             #
 #                                                       #
 # Based on project:                                     #
-#	nest_data_logger.py                                 #
-#	https://zpriddy.com/posts/python-nest-data-logger/  #
+#   nest_data_logger.py                                 #
+#   https://zpriddy.com/posts/python-nest-data-logger/  #
 # Zachary Priddy - 2015                                 #
 # me@zpriddy.com                                        #
 #                                                       #
