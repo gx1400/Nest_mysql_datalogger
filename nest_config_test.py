@@ -145,14 +145,15 @@ def dataLoop(nest):
 
 	dayLog = []
 	
+	#build log file name, this will change after midnight
 	log_filename = os.path.join(dir_path,"logs",str(datetime.now().year) +'-' + str(datetime.now().month) + '-' + str(datetime.now().day) + '.log')
-	
 	print("Log file: " + log_filename)
 	
 	#check for log file directory
 	#delete old log files if -x option was added
 	deleteoldlogs(dir_path)	
 	
+	#try to open existing log files
 	try:
 		dayLog = pickle.load(open(log_filename, 'rb'))
 		dayLogIndex = len(dayLog)
@@ -161,15 +162,18 @@ def dataLoop(nest):
 		dayLogIndex = 0 
 
 	log = {}
-	
+		
+	#execute nest API pull
 	data = nest.devices[0]
 	structure = nest.structures[0]
+	
+	#Start nest API parsing
 	deviceData(data,log)
 	sharedData(data, log)
 	weatherData(data,log)
-
 	structureData(structure,log)
 
+	#current time stamp for logging later
 	log['$timestamp'] = datetime.now().isoformat()
 
 	#adjust target temp for heat/cool mode.  I don't use heat+cool
@@ -181,20 +185,23 @@ def dataLoop(nest):
 		away_temp = 0
 	print("Away temp, " + str(log['target_type']) + ": " + str(away_temp))
 	
+	#calculate 
 	calcTotals(log,dayLog)
 
 	
-
+	#can remove this since cleaning up comments
 	if(dayLogIndex != 0):
 		dayLog.append(log)
 	else:
 		dayLog.append(log)
 
+	# write information to log file using Pickle
 	try:
 		pickle.dump(dayLog,open(log_filename,'wb'))
 	except:
 		print ("Error Saving Log: ", log_filename)
 	
+	#write to MySQL
 	logToMySQL(log)
 
 	#print dayLog
@@ -212,21 +219,21 @@ def logToMySQL(log):
 	# prepare a cursor object using cursor() method
 	cursor = cnx.cursor()
 
-		
-	str_trans_time = str(log['trans_time'])						#
-	str_totalruntime = str(log['total_run_time']) 				#
+	#handle explicit string conversion upfront
+	str_trans_time = str(log['trans_time'])						
+	str_totalruntime = str(log['total_run_time']) 				
 	str_leaf_temp = str(log['leaf_temp'])						
 	str_target_type = str(log['target_type'])					
-	str_totalruntime_away = str(log['total_run_time_away'])		#
-	str_outside_temperature = str(log['outside_temperature'])	#
+	str_totalruntime_away = str(log['total_run_time_away'])		
+	str_outside_temperature = str(log['outside_temperature'])	
 	str_ac_state = str(log['ac_state'])							
-	str_timestamp = str(log['$timestamp'])						#
+	str_timestamp = str(log['$timestamp'])						
 	str_current_temperature = str(log['current_temperature'])	
 	str_away = str(log['away'])									
 	str_target_temp = str(log['target_temperature'])			
-	str_totalruntime_home = str(log['total_run_time_home'])		#
+	str_totalruntime_home = str(log['total_run_time_home'])		
 	str_fan_state = str(log['fan_state'])						
-	str_total_trans_time = str(log['total_trans_time'])			#
+	str_total_trans_time = str(log['total_trans_time'])			
 	str_humidity = str(log['humidity'])
 	str_winddir = str(log['wind_dir'])
 	str_windmph = str(log['wind_mph']) 
@@ -251,16 +258,6 @@ def logToMySQL(log):
 	
 	print(query)
 	
-	
-	#query = ("INSERT INTO nest.nest_log "
-	#		"(outside_temperature, time_stamp) "
-	#		"VALUES "
-	#		"('" + str_outside_temperature + "', '" + str_timestamp + "')")
-
-	#print(query)
-	
-	# Fetch a single row using fetchone() method.
-	#data = cursor.fetchone()
 	cursor.execute(query)
 
 	cnx.commit()
@@ -306,48 +303,84 @@ def structureData(structure,log):
 def calcTotals(log, dayLog):
 	global away_temp
 	dayLogLen = len(dayLog)
+	
+	#this would be first time script is running (so no log file) or 
+	# it's a new day, so new log file
 	if(dayLogLen == 0):
 		log['total_run_time'] = 0
 		log['total_run_time_home'] = 0
 		log['total_run_time_away'] = 0
 		log['total_trans_time'] = 0
 		log['trans_time'] = False
+	
 	else:
 		index = dayLogLen - 1 #list(dayLog)[dayLogLen-1]
-		if(log['ac_state'] == False and dayLog[index]['ac_state'] == False):
+		
+		#if the ac AND heater aren't running, AND they weren't running before 
+		# then copy values from last log
+		if(log['ac_state'] == False and dayLog[index]['ac_state'] == False and log['heat_state'] == False and dayLog[index]['heat_state'] == False):
 			log['total_run_time'] = dayLog[index]['total_run_time']
 			log['total_run_time_home'] = dayLog[index]['total_run_time_home']
 			log['total_run_time_away'] = dayLog[index]['total_run_time_away']
 			log['trans_time'] = False
 			log['total_trans_time'] = dayLog[index]['total_trans_time']
-		#elif(log['ac_state'] == True and dayLog[index]['ac_state'] == False):
-			#log['total_run_time'] = dayLog[index]['total_run_time']
-			#log['total_run_time_home'] = dayLog[index]['total_run_time_home']
-			#log['total_run_time_away'] = dayLog[index]['total_run_time_away']
-			#log['trans_time'] = False
-			#log['total_trans_time'] = dayLog[index]['total_trans_time']
+		
+		#start to handle situations where heater OR AC are on....
+		# 
 		else:
+			#calculate time difference
 			then = dateutil.parser.parse(dayLog[index]['$timestamp'])
 			now = dateutil.parser.parse(log['$timestamp'])
 			diff = now - then
 			diff = diff.total_seconds()/60
 			log['total_run_time'] = dayLog[index]['total_run_time'] + diff
 
+			
+			
+			#if away, add to away runtime
 			if(log['away']):
 				print ("CURRENTLY AWAY")
 				log['total_run_time_away'] = dayLog[index]['total_run_time_away'] + diff
 				log['total_run_time_home'] = dayLog[index]['total_run_time_home']
 				log['target_temperature'] = away_temp
+			#if home (not away), add to home runtime
 			elif(not log['away']):
 				log['total_run_time_home'] = dayLog[index]['total_run_time_home'] + diff
 				log['total_run_time_away'] = dayLog[index]['total_run_time_away']
-
+			
+			
+			
+			#the following section is used to track equipment run time when transitioning from
+			#  away to home.  essentially 'trans_time' is 'latched' until both the AC and heater
+			#  stop running, after the transition back to being home
+			#
+			# log['away'] is "current" state
+			# dayLog[index]['away'] is "previous" state
+			
+			#if we were away but we are now not away, and the ac is on, then add to transition time
+			#  latch us into an 'transition' state with 'trans_time'
 			if(log['away'] == False and dayLog[index]['away'] == True and log['ac_state'] == True):
 				log['trans_time'] = True
 				log['total_trans_time'] = dayLog[index]['total_trans_time'] + diff
-			elif(log['away'] == False and dayLog[index]['away'] == False and dayLog[index]['trans_time'] == True):
+			
+			#if we were away but we are now not away, and the heater is on, then add to transition time
+			#  latch us into an 'transition' state with 'trans_time'
+			elif(log['away'] == False and dayLog[index]['away'] == True and log['heat_state'] == True):
 				log['trans_time'] = True
 				log['total_trans_time'] = dayLog[index]['total_trans_time'] + diff
+			
+			#if we were in a 'trans_time' state, and we're not away, then stay in trans state
+			#  NOT SURE HOW THIS IS UNLATCHED?!
+			#elif(log['away'] == False and dayLog[index]['away'] == False and dayLog[index]['trans_time'] == True and (log['heat_state'] == True or log['ac_state'] == True)):
+			#
+			#testing adding 'heat state true' and 'ac state true' to trans time latch, so if we're home and have
+			# been home, and are in a transition state, AND Ac or heater are STILL running, then keep trans_time
+			# latched and count up.
+			elif(log['away'] == False and dayLog[index]['away'] == False and dayLog[index]['trans_time'] == True and (log['heat_state'] == True or log['ac_state'] == True)):
+				log['trans_time'] = True
+				log['total_trans_time'] = dayLog[index]['total_trans_time'] + diff
+			
+			# not in a transition, so unlatch and hold trans _time accumulation
 			else:
 				log['trans_time'] = False
 				log['total_trans_time'] = dayLog[index]['total_trans_time']
@@ -357,30 +390,6 @@ def calcTotals(log, dayLog):
 		log['target_temperature'] = away_temp
 
 
-
-
-def generateGraph(dayLog):
-
-	timestamps = []
-	total_run_time = []
-	total_run_time_home = []
-	total_run_time_away = []
-	total_trans_time = []
-	target_temperature = []
-	current_temperature = []
-	outside_temperature = []
-
-	for log in dayLog:
-		timestamps.append(log['$timestamp'])
-		total_run_time.append(log['total_run_time'])
-		total_run_time_home.append(log['total_run_time_home'])
-		total_run_time_away.append(log['total_run_time_away'])
-		total_trans_time.append(log['total_trans_time'])
-		target_temperature.append(log['target_temperature'])
-		current_temperature.append(log['current_temperature'])
-		outside_temperature.append(log['outside_temperature'])
-
-	
 
 def deleteoldlogs(dir_path):
 	
