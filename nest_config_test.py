@@ -65,6 +65,7 @@ nest_username = ""
 nest_pw = ""
 
 db_addr = ""
+db_port = ""
 db_username = ""
 db_pw = ""
 db_database = ""
@@ -77,7 +78,13 @@ db_database = ""
 ##########
 def getArgs():
 	parser = argparse.ArgumentParser(prog=programName, description=programDescription)
-	parser.add_argument("-c","--configfile",help="Configuration file path",required=True)
+	parser.add_argument("-nu","--nest_user",help="Nest API username",required=True)
+	parser.add_argument("-np","--nest_pw",help="Nest API password",required=True)
+	parser.add_argument("-da","--db_addr",help="Database IP Address",required=True)
+	parser.add_argument("-dp","--db_port",help="Database Port",required=False,default="3306")
+	parser.add_argument("-du","--db_user",help="Database Username",required=True)
+	parser.add_argument("-dw","--db_pass",help="Database Password",required=True)
+	parser.add_argument("-ds","--db_sch",help="Database Schema",required=False,default="nest")
 	parser.add_argument("-d","--debug",help="Debug Mode - One Time Run and Debug Info",required=False,action="store_true")
 	parser.add_argument("-x","--deletelogs",help="Delete old log files",required=False,action="store_true",default=False)
 
@@ -104,26 +111,20 @@ def getConfig():
 	global nest_username
 	global nest_pw
 	global db_addr
+	global db_port
 	global db_username
 	global db_pw
 	global db_database
 	
-	#if (os.path.isfile(args.configfile))
-	fileexists = os.path.isfile(args.configfile)
 	
-	if (not os.path.isfile(args.configfile)):
-		sys.exit("Error: Argument input config file '" + args.configfile + "' does not exist.  Exiting script...")
-		
-	c = configparser.RawConfigParser()
-	c.read(args.configfile)
 	
-	nest_username = c.get('nest', 'username').strip('"')
-	nest_pw = c.get('nest', 'passwd').strip('"')
-	
-	db_addr = c.get('database', 'address').strip('"')
-	db_username = c.get('database', 'username').strip('"')
-	db_pw = c.get('database', 'passwd').strip('"')
-	db_database = c.get('database', 'database').strip('"')
+	nest_username = args.nest_user
+	nest_pw = args.nest_pw
+	db_addr = args.db_addr
+	db_port = args.db_port
+	db_username = args.db_user
+	db_pw = args.db_pass
+	db_database = args.db_sch
 
 
 
@@ -431,18 +432,20 @@ def main(args):
 	
 	print("Starting nest logging......")
 	print("  Using: ")
-	print("         Config file:  " + args.configfile)
 	print("         Nest User:    " + nest_username)
 	print("         Nest PW:      " + nest_pw)
 	print("         DB Address:   " + db_addr)
+	print("         DB Port:      " + db_port)
 	print("         DB User:      " + db_username)
 	print("         DB Passwd:    " + db_pw)
 	print("         DB Schema:    " + db_database)
-	
+
+	sys.exit("EXITING FOR TEST")
+
 	# set global setting for deleting old log files
 	deletelogs = args.deletelogs
 		
-	#sys.exit("EXITING FOR TEST")
+	
 	
 	nestUser = User(username=nest_username,password=nest_pw) 
 	myNest = nestAuth(nestUser)
