@@ -4,20 +4,20 @@ This is project to log nest API data to a mySQL database.  My intention is to ev
 
 The python script can be executed one of two ways: using a config file or with command line arguments.
 
-#Config file
+# Config file
 
 The script can be executed using nest_config.py, which reads in a config file, which has a format laid out in the projects info.config.example.  
 
 Command line arguments:
-> -h : display usage information
-> -c : path_to_config_file
-> -d : debug additional verbose information to stdout
-> -x : delete old log files to save space
+> -h : display usage information  
+> -c : path_to_config_file  
+> -d : debug additional verbose information to stdout  
+> -x : delete old log files to save space  
 
-#Command line arguments
+# Command line arguments
 
 
-#Database information
+# Database information
 mySQL Database schema and table setups can be found below:
 
 Create a schema:
