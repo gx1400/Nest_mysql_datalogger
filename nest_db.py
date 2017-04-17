@@ -107,7 +107,7 @@ def getArgs():
 ###########
 # GET CONFIG FILE INFO
 ##########
-def getConfig():
+def getConfig(args):
 	global nest_username
 	global nest_pw
 	global db_addr
@@ -418,17 +418,15 @@ def deleteoldlogs(dir_path):
 				if os.path.isfile(f):
 					os.remove(f)
 
-#############
-# MAIN
-#############
-def main(args):
+def submain(args):
+	
 	global debug
 	global deletelogs
 	
 	if(args.debug):
 		debug = True
 		
-	getConfig()
+	getConfig(args)
 	
 	print("Starting nest logging......")
 	print("  Using: ")
@@ -452,6 +450,11 @@ def main(args):
 
 
 	dataLoop(myNest)
+#############
+# MAIN
+#############
+def main(args):
+	submain(args)
 
 
 

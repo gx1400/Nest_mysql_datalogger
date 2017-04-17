@@ -19,6 +19,7 @@ passwd = "<enter password here>"
 
 [database]
 address = "<mysql server address>"
+port = "<mysql port>"
 username = "<mysql user>"
 passwd = "<mysql user pw>"
 database = "<database/schema to connect to>"

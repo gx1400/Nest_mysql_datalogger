@@ -25,12 +25,14 @@
 #IMPORTS
 #########
 import argparse
+from argparse import Namespace
 
 #for config parsing
 import os.path
 import sys
 import configparser
 
+from nest_db import submain
 
 #########
 #VARS
@@ -52,6 +54,7 @@ nest_username = ""
 nest_pw = ""
 
 db_addr = ""
+db_port = ""
 db_username = ""
 db_pw = ""
 db_database = ""
@@ -87,10 +90,11 @@ def getArgs():
 ###########
 # GET CONFIG FILE INFO
 ##########
-def getConfig():
+def getfileConfig():
 	global nest_username
 	global nest_pw
 	global db_addr
+	global db_port
 	global db_username
 	global db_pw
 	global db_database
@@ -108,6 +112,7 @@ def getConfig():
 	nest_pw = c.get('nest', 'passwd').strip('"')
 	
 	db_addr = c.get('database', 'address').strip('"')
+	db_port = c.get('database', 'port').strip('"')
 	db_username = c.get('database', 'username').strip('"')
 	db_pw = c.get('database', 'passwd').strip('"')
 	db_database = c.get('database', 'database').strip('"')
@@ -128,21 +133,35 @@ def main(args):
 	
 	if(args.debug):
 		debug = True
-		
-	getConfig()
-	
-	print("Starting nest logging......")
-	print("  Using: ")
-	print("         Config file:  " + args.configfile)
-	print("         Nest User:    " + nest_username)
-	print("         Nest PW:      " + nest_pw)
-	print("         DB Address:   " + db_addr)
-	print("         DB User:      " + db_username)
-	print("         DB Passwd:    " + db_pw)
-	print("         DB Schema:    " + db_database)
 
-		
-	#sys.exit("EXITING FOR TEST")
+	deletelogs = args.deletelogs
+	
+	getfileConfig()
+	
+	#print("Starting nest logging......")
+	#print("  Using: ")
+	#print("         Config file:  " + args.configfile)
+	#print("         Nest User:    " + nest_username)
+	#print("         Nest PW:      " + nest_pw)
+	#print("         DB Address:   " + db_addr)
+	#print("         DB Port:      " + db_port)
+	#print("         DB User:      " + db_username)
+	#print("         DB Passwd:    " + db_pw)
+	#print("         DB Schema:    " + db_database)
+
+
+	newargs = Namespace(nest_user=nest_username, 
+		nest_pw=nest_pw, 
+		db_addr=db_addr, 
+		db_port=db_port,
+		db_user=db_username,
+		db_pass=db_pw,
+		db_sch=db_database,
+		debug=debug,
+		deletelogs=deletelogs)
+
+	submain(newargs)	
+	
 	
 
 
