@@ -48,7 +48,7 @@ from mysql.connector import (connection)
 #########
 #VARS
 #########
-programName="nest_data_logger.py"
+programName="nest_db.py"
 programDescription="This program calls the nest API to record data every two minutes to log nest statistics to mysql server"
 
 

@@ -1,6 +1,24 @@
 ## Nest_mysql_datalogger
 
-This is project to log nest API data to a mySQL database.  The database table must be setup as follows:
+This is project to log nest API data to a mySQL database.  My intention is to eventually play with the data.
+
+The python script can be executed one of two ways: using a config file or with command line arguments.
+
+#Config file
+
+The script can be executed using nest_config.py, which reads in a config file, which has a format laid out in the projects info.config.example.  
+
+Command line arguments:
+> -h : display usage information
+> -c : path_to_config_file
+> -d : debug additional verbose information to stdout
+> -x : delete old log files to save space
+
+#Command line arguments
+
+
+#Database information
+mySQL Database schema and table setups can be found below:
 
 Create a schema:
 >CREATE DATABASE `nest` /*!40100 DEFAULT CHARACTER SET latin1 */;
@@ -30,5 +48,5 @@ Create the table:
 >  PRIMARY KEY  (`index`)  
 >) ENGINE=InnoDB DEFAULT CHARSET=utf8;  
 
-The python script can be executed one of two ways: using a config file or with command line arguments
+
 
