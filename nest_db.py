@@ -1,4 +1,3 @@
-#! /usr/bin/python
 #########################################################
 #           Nest MySQL Data Logger                      #
 #########################################################
@@ -208,7 +207,7 @@ def dataLoop(nest):
 	#print dayLog
 
 def logToMySQL(log):
-
+		
 	# Open database connection
 	cnx = connection.MySQLConnection(
 		user=db_username, 
@@ -231,7 +230,9 @@ def logToMySQL(log):
 	str_timestamp = str(log['$timestamp'])						
 	str_current_temperature = str(log['current_temperature'])	
 	str_away = str(log['away'])									
-	str_target_temp = str(log['target_temperature'])			
+	str_target_temp = str(log['target_temperature'])
+	str_target_temp_high = str(log['target_temperature_high'])
+	str_target_temp_low = str(log['target_temperature_low'])		
 	str_totalruntime_home = str(log['total_run_time_home'])		
 	str_fan_state = str(log['fan_state'])						
 	str_total_trans_time = str(log['total_trans_time'])			
@@ -245,17 +246,34 @@ def logToMySQL(log):
 					"(trans_time, total_run_time, leaf_temp, target_type, total_run_time_away, "
 					"outside_temperature, ac_state, time_stamp, current_temperature, away, "
 					"target_temp, total_run_time_home, fan_state, total_trans_time, humidity, "
-					"wind_dir, wind_mph, weather_Condition, heater_state"
+					"wind_dir, wind_mph, weather_Condition, heater_state, target_temp_low, target_temp_high"
 					") "
 					"VALUES "
 					"(%s, '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s', %s, '%s', '%s', %s, '%s', "
-					"'%s', '%s', '%s', '%s', %s )" 
+					"'%s', '%s', '%s', '%s', %s , %s, %s)" 
 					% (str_trans_time, str_totalruntime, str_leaf_temp, str_target_type, 
 					str_totalruntime_away, str_outside_temperature, str_ac_state, 
 					str_timestamp, str_current_temperature, str_away, str_target_temp, 
 					str_totalruntime_home, str_fan_state, str_total_trans_time, str_humidity,
-					str_winddir, str_windmph, str_condition, str_heater_state)
+					str_winddir, str_windmph, str_condition, str_heater_state, str_target_temp_low, 
+					str_target_temp_high)
 				)
+
+	#query = ("INSERT INTO nest.nest_log "
+	#				"(trans_time, total_run_time, leaf_temp, target_type, total_run_time_away, "
+	#				"outside_temperature, ac_state, time_stamp, current_temperature, away, "
+	#				"target_temp, total_run_time_home, fan_state, total_trans_time, humidity, "
+	#				"wind_dir, wind_mph, weather_Condition, heater_state"
+	#				") "
+	#				"VALUES "
+	#				"(%s, '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s', %s, '%s', '%s', %s, '%s', "
+	#				"'%s', '%s', '%s', '%s', %s )" 
+	#				% (str_trans_time, str_totalruntime, str_leaf_temp, str_target_type, 
+	#				str_totalruntime_away, str_outside_temperature, str_ac_state, 
+	#				str_timestamp, str_current_temperature, str_away, str_target_temp, 
+	#				str_totalruntime_home, str_fan_state, str_total_trans_time, str_humidity,
+	#				str_winddir, str_windmph, str_condition, str_heater_state)
+	#			)
 	
 	print(query)
 	
@@ -281,6 +299,8 @@ def sharedData(data,log):
 	log['target_type'] = sharedData['target_temperature_type']
 	log['fan_state'] = sharedData['hvac_fan_state']
 	log['target_temperature'] = utils.c_to_f(sharedData['target_temperature'])
+	log['target_temperature_high'] = utils.c_to_f(sharedData['target_temperature_high'])
+	log['target_temperature_low'] = utils.c_to_f(sharedData['target_temperature_low'])
 	log['current_temperature'] = utils.c_to_f(sharedData['current_temperature'])
 	log['ac_state'] = sharedData['hvac_ac_state']
 	log['heat_state'] = sharedData['hvac_heater_state']
@@ -438,7 +458,7 @@ def submain(args):
 	print("         DB Passwd:    " + db_pw)
 	print("         DB Schema:    " + db_database)
 
-	sys.exit("EXITING FOR TEST")
+	#sys.exit("EXITING FOR TEST")
 
 	# set global setting for deleting old log files
 	deletelogs = args.deletelogs
