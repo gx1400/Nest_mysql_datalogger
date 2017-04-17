@@ -2,9 +2,20 @@
 
 This is project to log nest API data to a mySQL database.  My intention is to eventually play with the data.
 
+#### Credit Up-Front
+
+By far, the majority of this project was scavenged from the following project:
+> nest_data_logger.py  
+> https://zpriddy.com/posts/python-nest-data-logger/  
+> Zachary Priddy - 2015  
+> me@zpriddy.com  
+
+
+# Details 
+
 The python script can be executed one of two ways: using a config file or with command line arguments.
 
-# Config file
+### Config file
 
 The script can be executed using nest_config.py, which reads in a config file, which has a format laid out in the projects info.config.example.  
 
@@ -14,10 +25,10 @@ Command line arguments:
 > -d : debug additional verbose information to stdout  
 > -x : delete old log files to save space  
 
-# Command line arguments
+### Command line arguments
 
 
-# Database information
+### Database information
 mySQL Database schema and table setups can be found below:
 
 Create a schema:
