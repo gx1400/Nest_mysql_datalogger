@@ -7,9 +7,13 @@ Create a schema:
 
 Create the table:
 >CREATE TABLE `nest_log` (
+
 >  `index` int(11) NOT NULL auto_increment,
+
 >  `trans_time` bit(1) default NULL,
+
 >  `total_run_time` double default NULL,
+
 >  `leaf_temp` double default NULL,
 >  `target_type` varchar(45) default NULL,
 >  `total_run_time_away` double default NULL,
