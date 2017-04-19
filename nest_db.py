@@ -64,7 +64,7 @@ nest_username = ""
 nest_pw = ""
 
 db_addr = ""
-db_port = ""
+db_port = "3306"
 db_username = ""
 db_pw = ""
 db_database = ""
@@ -183,7 +183,7 @@ def dataLoop(nest):
 		away_temp = log['away_temp_low']
 	else:
 		away_temp = 0
-	print("Away temp, " + str(log['target_type']) + ": " + str(away_temp))
+	#print("Away temp, " + str(log['target_type']) + ": " + str(away_temp))
 	
 	#calculate 
 	calcTotals(log,dayLog)
@@ -207,11 +207,15 @@ def dataLoop(nest):
 	#print dayLog
 
 def logToMySQL(log):
-		
+	if not checkdb():
+		print("Error connecting to DB... skipping query")
+		return 
+
 	# Open database connection
 	cnx = connection.MySQLConnection(
 		user=db_username, 
-		password=db_pw, 
+		password=db_pw,
+        port=db_port,
 		host=db_addr, 
 		database=db_database)
 	
@@ -438,6 +442,35 @@ def deleteoldlogs(dir_path):
 				if os.path.isfile(f):
 					os.remove(f)
 
+def checkdb():
+	cnx = connection.MySQLConnection()
+	try:
+		print("Testing database parameters...")
+		# Open database connection
+		cnx = connection.MySQLConnection(
+			user=db_username,
+			password=db_pw,
+			host=db_addr,
+			port=db_port,
+			database=db_database)
+
+		# prepare a cursor object using cursor() method
+		cursor = cnx.cursor()
+		cursor.execute("SELECT VERSION()")
+		results = cursor.fetchone()
+
+		# Check if anything at all is returned
+		if results:
+			print("    DB Version: " + str(results[0]))
+			return True
+		else:
+			return False
+
+	except:
+		#print "ERROR IN CONNECTION"
+		return False
+
+
 def submain(args):
 	
 	global debug
@@ -458,7 +491,11 @@ def submain(args):
 	print("         DB Passwd:    " + db_pw)
 	print("         DB Schema:    " + db_database)
 
-	sys.exit("EXITING FOR DOCKER TESTING")
+	if checkdb():
+		print("DB Connection successful...")
+	else:
+		print("DB Connection failed...")
+		sys.exit("     ... Exiting script")
 
 	# set global setting for deleting old log files
 	deletelogs = args.deletelogs
@@ -470,6 +507,7 @@ def submain(args):
 
 
 	dataLoop(myNest)
+
 #############
 # MAIN
 #############
