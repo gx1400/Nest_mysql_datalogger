@@ -44,7 +44,7 @@ Create the table:
 >  `total_run_time_away` double default NULL,  
 >  `outside_temperature` double default NULL,  
 >  `ac_state` varchar(45) default NULL,  
->  `time_stamp` timestamp NULL default NULL,  
+>  `time_stamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,  
 >  `current_temperature` double default NULL,  
 >  `away` bit(1) default NULL,  
 >  `target_temp` double default NULL,  
@@ -56,8 +56,7 @@ Create the table:
 >  `wind_mph` double default NULL,  
 >  `weather_condition` varchar(45) default NULL,  
 >  `heater_state` bit(1) default NULL,  
+>  `target_temp_low` double DEFAULT NULL,  
+>  `target_temp_high` double DEFAULT NULL,  
 >  PRIMARY KEY  (`index`)  
 >) ENGINE=InnoDB DEFAULT CHARSET=utf8;  
-
-
-
