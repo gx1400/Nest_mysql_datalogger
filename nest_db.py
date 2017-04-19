@@ -231,7 +231,7 @@ def logToMySQL(log):
 	str_totalruntime_away = str(log['total_run_time_away'])		
 	str_outside_temperature = str(log['outside_temperature'])	
 	str_ac_state = str(log['ac_state'])							
-	str_timestamp = str(log['$timestamp'])						
+	#str_timestamp = str(log['$timestamp'])						
 	str_current_temperature = str(log['current_temperature'])	
 	str_away = str(log['away'])									
 	str_target_temp = str(log['target_temperature'])
@@ -246,38 +246,41 @@ def logToMySQL(log):
 	str_condition = str(log['condition']) 
 	str_heater_state = str(log['heat_state'])
 	
+	#query = ("INSERT INTO nest.nest_log "
+	#				"(trans_time, total_run_time, leaf_temp, target_type, total_run_time_away, "
+	#				"outside_temperature, ac_state, time_stamp, current_temperature, away, "
+	#				"target_temp, total_run_time_home, fan_state, total_trans_time, humidity, "
+	#				"wind_dir, wind_mph, weather_Condition, heater_state, target_temp_low, target_temp_high"
+	#				") "
+	#				"VALUES "
+	#				"(%s, '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s', %s, '%s', '%s', %s, '%s', "
+	#				"'%s', '%s', '%s', '%s', %s , %s, %s)" 
+	#				% (str_trans_time, str_totalruntime, str_leaf_temp, str_target_type, 
+	#				str_totalruntime_away, str_outside_temperature, str_ac_state, 
+	#				str_timestamp, str_current_temperature, str_away, str_target_temp, 
+	#				str_totalruntime_home, str_fan_state, str_total_trans_time, str_humidity,
+	#				str_winddir, str_windmph, str_condition, str_heater_state, str_target_temp_low, 
+	#				str_target_temp_high)
+	#			)
+
 	query = ("INSERT INTO nest.nest_log "
 					"(trans_time, total_run_time, leaf_temp, target_type, total_run_time_away, "
-					"outside_temperature, ac_state, time_stamp, current_temperature, away, "
+					"outside_temperature, ac_state, current_temperature, away, "
 					"target_temp, total_run_time_home, fan_state, total_trans_time, humidity, "
 					"wind_dir, wind_mph, weather_Condition, heater_state, target_temp_low, target_temp_high"
 					") "
 					"VALUES "
 					"(%s, '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s', %s, '%s', '%s', %s, '%s', "
-					"'%s', '%s', '%s', '%s', %s , %s, %s)" 
+					"'%s', '%s', '%s', %s , %s, %s)" 
 					% (str_trans_time, str_totalruntime, str_leaf_temp, str_target_type, 
 					str_totalruntime_away, str_outside_temperature, str_ac_state, 
-					str_timestamp, str_current_temperature, str_away, str_target_temp, 
+					str_current_temperature, str_away, str_target_temp, 
 					str_totalruntime_home, str_fan_state, str_total_trans_time, str_humidity,
 					str_winddir, str_windmph, str_condition, str_heater_state, str_target_temp_low, 
 					str_target_temp_high)
 				)
 
-	#query = ("INSERT INTO nest.nest_log "
-	#				"(trans_time, total_run_time, leaf_temp, target_type, total_run_time_away, "
-	#				"outside_temperature, ac_state, time_stamp, current_temperature, away, "
-	#				"target_temp, total_run_time_home, fan_state, total_trans_time, humidity, "
-	#				"wind_dir, wind_mph, weather_Condition, heater_state"
-	#				") "
-	#				"VALUES "
-	#				"(%s, '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s', %s, '%s', '%s', %s, '%s', "
-	#				"'%s', '%s', '%s', '%s', %s )" 
-	#				% (str_trans_time, str_totalruntime, str_leaf_temp, str_target_type, 
-	#				str_totalruntime_away, str_outside_temperature, str_ac_state, 
-	#				str_timestamp, str_current_temperature, str_away, str_target_temp, 
-	#				str_totalruntime_home, str_fan_state, str_total_trans_time, str_humidity,
-	#				str_winddir, str_windmph, str_condition, str_heater_state)
-	#			)
+	
 	
 	print(query)
 	
@@ -478,6 +481,7 @@ def submain(args):
 	
 	if(args.debug):
 		debug = True
+		print("Debugging active...")
 		
 	getConfig(args)
 	
@@ -499,6 +503,8 @@ def submain(args):
 
 	# set global setting for deleting old log files
 	deletelogs = args.deletelogs
+	if deletelogs:
+		print("Deleting of old logs engaged...")
 		
 	
 	
