@@ -458,7 +458,7 @@ def submain(args):
 	print("         DB Passwd:    " + db_pw)
 	print("         DB Schema:    " + db_database)
 
-	#sys.exit("EXITING FOR TEST")
+	sys.exit("EXITING FOR DOCKER TESTING")
 
 	# set global setting for deleting old log files
 	deletelogs = args.deletelogs
